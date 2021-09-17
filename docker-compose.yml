@@ -1,0 +1,33 @@
+version: '3'
+services:
+
+  daemon:
+    image: matrixdotorg/synapse:v1.36.0
+    env_file:
+      env.secret
+    environment:
+      - SYNAPSE_SERVER_NAME=${HOMESERVER_CONF_URL}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=matrix
+      - POSTGRES_USER=matrix
+    volumes:
+      - ${HOMESERVER_VOLUME_DATA:-./volumes/data}:/data
+      - ${HOMESERVER_VOLUME_UPLOADS:-./volumes/uploads}:/data/uploads
+      - ${HOMESERVER_VOLUME_MEDIA:-./volumes/media}:/data/media
+    networks:
+      - web
+      - databases
+      - default
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=web
+        - traefik.port=8008
+        - traefik.frontend.rule=Host:${HOMESERVER_CONF_URL:-homeserver.domain.com}
+        - traefik.frontend.port=8008
+
+networks:
+  web:
+    external: true
+  databases:
+    external: true
